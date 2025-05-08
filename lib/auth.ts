@@ -1,33 +1,31 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { supabase } from '@/lib/supabaseClient';
-import { getUsuarioAutenticado } from '@/lib/auth';
+import { IncomingMessage } from 'http';
+import { parse } from 'cookie';
+import jwt from 'jsonwebtoken';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const user = getUsuarioAutenticado(req);
-  if (!user) return res.status(401).json({ message: 'Não autorizado' });
+const JWT_SECRET = process.env.JWT_SECRET || 'chave_secreta_segura';
 
-  if (req.method === 'GET') {
-    const { data, error } = await supabase
-      .from('usuarios')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+interface TokenPayload {
+  id: string;
+  email: string;
+  nome: string;
+  iat?: number;
+  exp?: number;
+}
 
-    if (error) return res.status(400).json({ error });
-    return res.status(200).json(data);
+// exportação nomeada correta
+export function getUsuarioAutenticado(req: IncomingMessage): TokenPayload | null {
+  const cookies = req.headers.cookie;
+  if (!cookies) return null;
+
+  const parsed = parse(cookies);
+  const token = parsed.token;
+
+  if (!token) return null;
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
+    return decoded;
+  } catch (error) {
+    return null;
   }
-
-  if (req.method === 'PUT') {
-    const { email, telefone, banco, chave_pix, tipo_chave_pix } = req.body;
-
-    const { error } = await supabase
-      .from('usuarios')
-      .update({ email, telefone, banco, chave_pix, tipo_chave_pix })
-      .eq('id', user.id);
-
-    if (error) return res.status(400).json({ error });
-    return res.status(200).json({ message: 'Atualizado com sucesso' });
-  }
-
-  res.status(405).end(); // Method Not Allowed
 }
