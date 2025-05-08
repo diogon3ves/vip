@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String         @id @default(uuid())
+  name           String
+  email          String         @unique
+  createdAt      DateTime       @default(now())
+  indications    Indication[]   @relation("referrer")
+  referrals      Indication[]   @relation("referee")
+  subscriptions  Subscription[]
+  withdrawals    Withdrawal[]
+}
+
+model Indication {
+  id            String   @id @default(uuid())
+  referrerId    String
+  refereeId     String?
+  createdAt     DateTime @default(now())
+  referee       User?    @relation("referee", fields: [refereeId], references: [id])
+  referrer      User     @relation("referrer", fields: [referrerId], references: [id])
+  credited      Boolean  @default(false)  // será true quando o indicado se cadastrar
+}
+
+model Subscription {
+  id         String   @id @default(uuid())
+  userId     String
+  plan       String   // "basic", "pro" ou "premium"
+  price      Float
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model Withdrawal {
+  id         String   @id @default(uuid())
+  userId     String
+  amount     Float
+  requestedAt DateTime @default(now())
+  approved   Boolean  @default(false)
+  user       User     @relation(fields: [userId], references: [id])
+}

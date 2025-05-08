@@ -1,0 +1,29 @@
+{
+  "name": "afiliados-nextjs-100final",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "next": "13.4.19",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "tailwindcss": "^3.4.1",
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.24",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.5.25",
+    "@prisma/client": "^4.14.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.2",
+    "@types/react": "^18.2.21",
+    "@types/node": "^20.11.24",
+    "prisma": "^4.14.0"
+  }
+}
