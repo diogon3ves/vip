@@ -1,9 +1,29 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { GetServerSideProps } from 'next';
+import { getUsuarioAutenticado } from '@/lib/auth'; // certifique-se que esse caminho esteja correto
 
-export default function Painel() {
-  const [nomeUsuario] = useState('Usuário');
-  const [leadsCaptados] = useState(3); // Exemplo: 3 leads
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const usuario = getUsuarioAutenticado(ctx.req);
+
+  if (!usuario) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: {
+      nome: usuario.email.split('@')[0], // pode mudar para usuario.nome se desejar
+    },
+  };
+};
+
+export default function Painel({ nome }: { nome: string }) {
+  const [leadsCaptados] = useState(3); // exemplo estático
   const [progresso, setProgresso] = useState(0);
 
   useEffect(() => {
@@ -21,29 +41,24 @@ export default function Painel() {
     return () => clearInterval(intervalo);
   }, [leadsCaptados]);
 
-  // 📍 Correção do raio da bolinha
   const angle = (progresso / 100) * 360 - 90;
-  const radius = 68; // Corrigido: 80 (raio da barra) - 12 (metade do tamanho da bolinha)
+  const radius = 68;
   const rad = (angle * Math.PI) / 180;
   const x = Math.cos(rad) * radius;
   const y = Math.sin(rad) * radius;
 
-  // Cor da barra conforme o progresso
-  const corProgresso = progresso <= 30 
-    ? '#f97316' // Laranja
-    : progresso <= 70 
-    ? '#facc15' // Amarelo
-    : '#22c55e'; // Verde
+  const corProgresso = progresso <= 30
+    ? '#f97316'
+    : progresso <= 70
+    ? '#facc15'
+    : '#22c55e';
 
   return (
     <div className="flex min-h-screen bg-gray-100">
-
-      {/* MENU LATERAL */}
       <aside className="w-64 bg-white p-6 flex flex-col shadow-lg">
         <div className="flex items-center justify-center h-24 mb-8">
           <div className="text-2xl font-bold text-green-600">LOGO</div>
         </div>
-
         <nav className="flex flex-col space-y-4">
           <Link href="/painel" className="text-gray-700 hover:text-green-500 font-semibold transition">Painel</Link>
           <Link href="/dados" className="text-gray-700 hover:text-green-500 font-semibold transition">Meus Dados</Link>
@@ -54,11 +69,9 @@ export default function Painel() {
         </nav>
       </aside>
 
-      {/* CONTEÚDO PRINCIPAL */}
       <main className="flex-1 p-10">
-        <h1 className="text-4xl font-bold mb-10 text-gray-800">Olá, {nomeUsuario} 👋</h1>
+        <h1 className="text-4xl font-bold mb-10 text-gray-800">Olá, {nome} 👋</h1>
 
-        {/* CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="bg-white p-8 rounded-3xl shadow-lg flex flex-col items-center">
             <h2 className="text-xl font-bold text-green-600 mb-2">Saldo Disponível</h2>
@@ -76,12 +89,9 @@ export default function Painel() {
           </div>
         </div>
 
-        {/* PROGRESSO CIRCULAR */}
         <div className="bg-white mt-12 p-8 rounded-3xl shadow-lg flex flex-col items-center">
           <h2 className="text-xl font-bold mb-6 text-gray-700">Progresso para Saque</h2>
-
           <div className="relative w-40 h-40 flex items-center justify-center">
-            {/* Barra circular */}
             <div
               className="absolute w-full h-full rounded-full shadow-inner"
               style={{
@@ -89,13 +99,9 @@ export default function Painel() {
                 transition: 'background 0.5s ease'
               }}
             ></div>
-
-            {/* Centro branco */}
             <div className="absolute w-28 h-28 bg-white rounded-full flex items-center justify-center">
               <span className="text-2xl font-bold" style={{ color: corProgresso }}>{progresso}%</span>
             </div>
-
-            {/* Bolinha corrigida */}
             <div
               className="absolute w-6 h-6 bg-orange-500 rounded-full shadow-md"
               style={{
@@ -107,7 +113,6 @@ export default function Painel() {
             ></div>
           </div>
         </div>
-
       </main>
     </div>
   );
