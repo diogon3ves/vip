@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { GetServerSideProps } from 'next';
-import { getUsuarioAutenticado } from '@/lib/auth'; // certifique-se que esse caminho esteja correto
+import { getUsuarioAutenticado } from '../lib/auth';// certifique-se que esse caminho esteja correto
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const usuario = getUsuarioAutenticado(ctx.req);
