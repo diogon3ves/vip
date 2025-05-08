@@ -1,5 +1,3 @@
-# Atualizando o schema.prisma com os novos campos para suportar saldo, ciclos e status de ativação
-updated_schema_prisma = '''
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,57 +7,51 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id             String         @id @default(uuid())
-  name           String
-  email          String         @unique
-  password       String         // para login
-  createdAt      DateTime       @default(now())
+model Usuario {
+  id                 String         @id @default(uuid())
+  nome               String
+  cpf                String?        @unique
+  dataNascimento     DateTime?
+  telefone           String?
+  email              String         @unique
+  senha              String
+  criadoEm           DateTime       @default(now())
 
-  // Relacionamentos
-  indications    Indication[]   @relation("referrer")
-  referrals      Indication[]   @relation("referee")
-  subscriptions  Subscription[]
-  withdrawals    Withdrawal[]
+  indicacoesFeitas    Indicacao[]   @relation("quemIndicou")
+  indicacoesRecebidas Indicacao[]   @relation("quemFoiIndicado")
+  assinaturas         Assinatura[]
+  saques              Saque[]
 
-  // Campos para controle de saldo e ciclo
-  balance              Float          @default(0)
-  isActive             Boolean        @default(false) // ativado após assinatura
-  cycle                Int            @default(1)      // ciclo de 5 indicações
-  indicationsInCycle   Int            @default(0)      // quantas no ciclo atual
+  saldo               Float         @default(0)
+  ativo               Boolean       @default(false)
+  ciclo               Int           @default(1)
+  indicacoesNoCiclo   Int           @default(0)
 }
 
-model Indication {
-  id            String   @id @default(uuid())
-  referrerId    String
-  refereeId     String?
-  createdAt     DateTime @default(now())
-  referee       User?    @relation("referee", fields: [refereeId], references: [id])
-  referrer      User     @relation("referrer", fields: [referrerId], references: [id])
-  credited      Boolean  @default(false)  // será true quando o indicado se cadastrar
+model Indicacao {
+  id                String   @id @default(uuid())
+  quemIndicouId     String
+  quemFoiIndicadoId String?
+  criadoEm          DateTime @default(now())
+  quemFoiIndicado   Usuario? @relation("quemFoiIndicado", fields: [quemFoiIndicadoId], references: [id])
+  quemIndicou       Usuario  @relation("quemIndicou", fields: [quemIndicouId], references: [id])
+  creditado         Boolean  @default(false)
 }
 
-model Subscription {
+model Assinatura {
   id         String   @id @default(uuid())
-  userId     String
-  plan       String   // "basic", "pro", "premium"
-  price      Float
-  createdAt  DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id])
+  usuarioId  String
+  plano      String
+  valor      Float
+  criadoEm   DateTime @default(now())
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id])
 }
 
-model Withdrawal {
-  id          String   @id @default(uuid())
-  userId      String
-  amount      Float
-  requestedAt DateTime @default(now())
-  approved    Boolean  @default(false)
-  user        User     @relation(fields: [userId], references: [id])
+model Saque {
+  id            String   @id @default(uuid())
+  usuarioId     String
+  valor         Float
+  solicitadoEm  DateTime @default(now())
+  aprovado      Boolean  @default(false)
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id])
 }
-'''
-
-# Salvar as alterações no arquivo schema.prisma
-with open(schema_prisma_path, "w", encoding="utf-8") as f:
-    f.write(updated_schema_prisma)
-
-"Schema.prisma atualizado com campos para saldo, ciclo e status de assinatura."
