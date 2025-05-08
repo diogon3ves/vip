@@ -1,3 +1,5 @@
+# Atualizando o schema.prisma com os novos campos para suportar saldo, ciclos e status de ativação
+updated_schema_prisma = '''
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,11 +13,20 @@ model User {
   id             String         @id @default(uuid())
   name           String
   email          String         @unique
+  password       String         // para login
   createdAt      DateTime       @default(now())
+
+  // Relacionamentos
   indications    Indication[]   @relation("referrer")
   referrals      Indication[]   @relation("referee")
   subscriptions  Subscription[]
   withdrawals    Withdrawal[]
+
+  // Campos para controle de saldo e ciclo
+  balance              Float          @default(0)
+  isActive             Boolean        @default(false) // ativado após assinatura
+  cycle                Int            @default(1)      // ciclo de 5 indicações
+  indicationsInCycle   Int            @default(0)      // quantas no ciclo atual
 }
 
 model Indication {
@@ -31,17 +42,24 @@ model Indication {
 model Subscription {
   id         String   @id @default(uuid())
   userId     String
-  plan       String   // "basic", "pro" ou "premium"
+  plan       String   // "basic", "pro", "premium"
   price      Float
   createdAt  DateTime @default(now())
   user       User     @relation(fields: [userId], references: [id])
 }
 
 model Withdrawal {
-  id         String   @id @default(uuid())
-  userId     String
-  amount     Float
+  id          String   @id @default(uuid())
+  userId      String
+  amount      Float
   requestedAt DateTime @default(now())
-  approved   Boolean  @default(false)
-  user       User     @relation(fields: [userId], references: [id])
+  approved    Boolean  @default(false)
+  user        User     @relation(fields: [userId], references: [id])
 }
+'''
+
+# Salvar as alterações no arquivo schema.prisma
+with open(schema_prisma_path, "w", encoding="utf-8") as f:
+    f.write(updated_schema_prisma)
+
+"Schema.prisma atualizado com campos para saldo, ciclo e status de assinatura."
