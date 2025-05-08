@@ -24,8 +24,10 @@ export function getUsuarioAutenticado(req: IncomingMessage): TokenPayload | null
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
+    console.log('JWT decodificado:', decoded); // ✅ Log aqui
     return decoded;
   } catch (error) {
+    console.error('Erro ao decodificar JWT:', error);
     return null;
   }
 }
