@@ -1,19 +1,30 @@
-import { NextApiRequest } from 'next'
-import jwt from 'jsonwebtoken'
+import { IncomingMessage } from 'http'
 import { parse } from 'cookie'
+import jwt from 'jsonwebtoken'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'chave_secreta_segura'
 
-export function getUsuarioAutenticado(req: NextApiRequest) {
-  const cookies = req.headers.cookie ? parse(req.headers.cookie) : {}
-  const token = cookies.auth_token
+interface TokenPayload {
+  id: string
+  email: string
+  nome: string
+  iat?: number
+  exp?: number
+}
+
+export function getUsuarioAutenticado(req: IncomingMessage): TokenPayload | null {
+  const cookies = req.headers.cookie
+  if (!cookies) return null
+
+  const parsed = parse(cookies)
+  const token = parsed.token
 
   if (!token) return null
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string, email: string }
+    const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload
     return decoded
-  } catch {
+  } catch (error) {
     return null
   }
 }
