@@ -15,14 +15,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ erro: 'Nome, email e senha são obrigatórios' })
   }
 
-  const existente = await prisma.usuario.findUnique({ where: { email } })
-  if (existente) {
-    return res.status(409).json({ erro: 'E-mail já cadastrado' })
-  }
-
-  const senhaCriptografada = await bcrypt.hash(senha, 10)
-
   try {
+    const existente = await prisma.usuario.findUnique({ where: { email } })
+    if (existente) {
+      return res.status(409).json({ erro: 'E-mail já cadastrado' })
+    }
+
+    const senhaCriptografada = await bcrypt.hash(senha, 10)
+
     const novo = await prisma.usuario.create({
       data: {
         nome,
@@ -36,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(201).json({ mensagem: 'Usuário criado com sucesso', usuario: { id: novo.id, email: novo.email } })
   } catch (error) {
-    console.error(error)
-    return res.status(500).json({ erro: 'Erro ao cadastrar usuário' })
+    console.error('Erro ao cadastrar usuário:', error)
+    return res.status(500).json({ erro: 'Erro interno ao cadastrar usuário' })
   }
 }
