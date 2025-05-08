@@ -1,19 +1,31 @@
-// pages/api/subscriptions.ts
-import type { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "../../lib/prisma";
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
-    const { userId, plan, price } = req.body;
-    const sub = await prisma.subscription.create({
-      data: { userId, plan, price: parseFloat(price) },
-    });
-    return res.status(201).json(sub);
+    const { usuarioId, plano, valor } = req.body;
+
+    if (!usuarioId || !plano || !valor) {
+      return res.status(400).json({ erro: "Dados obrigatórios ausentes." });
+    }
+
+    try {
+      const sub = await prisma.assinatura.create({
+        data: {
+          usuarioId,
+          plano,
+          valor: parseFloat(valor)
+        },
+      });
+
+      return res.status(201).json(sub);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ erro: "Erro ao registrar assinatura." });
+    }
+  } else {
+    return res.status(405).json({ erro: "Método não permitido." });
   }
-  if (req.method === "GET") {
-    const subs = await prisma.subscription.findMany({ include: { user: true } });
-    return res.json(subs);
-  }
-  res.setHeader("Allow", ["GET", "POST"]);
-  res.status(405).end();
 }
