@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log(`[API] Buscando usuário por ${chave}: ${valor}`);
 
       const { data, error } = await supabase
-        .from('usuario')
+        .from('Usuario')
         .select('*')
         .eq(chave, valor)
         .single();
@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const valor = user.id || user.email;
 
       const { error } = await supabase
-        .from('usuario')
+        .from('Usuario')
         .update({ email, telefone, banco, chave_pix, tipo_chave_pix })
         .eq(chave, valor);
 
