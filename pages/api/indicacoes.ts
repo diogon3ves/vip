@@ -1,22 +1,31 @@
-// pages/api/indicacoes.ts
-import type { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "../../lib/prisma";
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === "POST") {
-    const { referrerId, refereeEmail } = req.body;
-    // cria a indicação; creditação só vira true quando o indicado se cadastrar
-    const indication = await prisma.indicacao.create({
-      data: { referrerId },
-    });
-    return res.status(201).json(indication);
+  if (req.method !== 'POST') {
+    return res.status(405).json({ erro: 'Método não permitido' })
   }
-  if (req.method === "GET") {
-    const all = await prisma.indicacao.findMany({
-      include: { referrer: true, referee: true },
-    });
-    return res.json(all);
+
+  const { quemIndicouId } = req.body
+
+  if (!quemIndicouId) {
+    return res.status(400).json({ erro: 'ID de quem indicou é obrigatório' })
   }
-  res.setHeader("Allow", ["GET", "POST"]);
-  res.status(405).end();
+
+  try {
+    const indicacao = await prisma.indicacao.create({
+      data: {
+        quemIndicouId,
+        // quemFoiIndicadoId será preenchido quando o indicado se cadastrar
+        // creditado permanece como false até que o indicado finalize o cadastro
+      }
+    })
+
+    return res.status(201).json(indicacao)
+  } catch (error) {
+    console.error('Erro ao criar indicação:', error)
+    return res.status(500).json({ erro: 'Erro ao registrar indicação' })
+  }
 }
