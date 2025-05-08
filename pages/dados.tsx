@@ -1,14 +1,16 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 export default function Dados() {
-  const [nome] = useState('João da Silva');
-  const [cpf] = useState('12345678900');
-  const [nascimento] = useState('01/01/1990');
+  const [nome, setNome] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [nascimento, setNascimento] = useState('');
 
-  const [email, setEmail] = useState('joao@gmail.com');
-  const [telefone, setTelefone] = useState('11987654321');
-  const [banco, setBanco] = useState('Nubank');
+  const [email, setEmail] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [banco, setBanco] = useState('');
   const [chavePix, setChavePix] = useState('');
   const [tipoChavePix, setTipoChavePix] = useState('cpf');
 
@@ -16,6 +18,25 @@ export default function Dados() {
   const [alterado, setAlterado] = useState(false);
   const [mensagemSucesso, setMensagemSucesso] = useState('');
   const [cpfValido, setCpfValido] = useState(true);
+
+  useEffect(() => {
+    async function fetchDados() {
+      const res = await fetch('/api/user');
+      if (res.ok) {
+        const data = await res.json();
+        setNome(data.nome || '');
+        setCpf(data.cpf || '');
+        setNascimento(data.nascimento || '');
+        setEmail(data.email || '');
+        setTelefone(data.telefone || '');
+        setBanco(data.banco || '');
+        setChavePix(data.chave_pix || '');
+        setTipoChavePix(data.tipo_chave_pix || 'cpf');
+      }
+    }
+
+    fetchDados();
+  }, []);
 
   useEffect(() => {
     setAlterado(editando);
@@ -76,11 +97,26 @@ export default function Dados() {
     return chave;
   }
 
-  function salvarAlteracoes(e: React.FormEvent) {
+  async function salvarAlteracoes(e: React.FormEvent) {
     e.preventDefault();
-    setEditando(false);
-    setMensagemSucesso('Dados atualizados com sucesso!');
-    setTimeout(() => setMensagemSucesso(''), 4000);
+
+    const res = await fetch('/api/user', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        telefone,
+        banco,
+        chave_pix: chavePix,
+        tipo_chave_pix: tipoChavePix,
+      }),
+    });
+
+    if (res.ok) {
+      setEditando(false);
+      setMensagemSucesso('Dados atualizados com sucesso!');
+      setTimeout(() => setMensagemSucesso(''), 4000);
+    }
   }
 
   function handleCpfChange(value: string) {
