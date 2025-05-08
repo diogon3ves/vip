@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from '@/lib/supabaseClient';
-import { getUserFromToken } from '@/lib/auth';
+import { getUsuarioAutenticado } from '@/lib/auth'; // função exportada de forma nomeada
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const user = await getUserFromToken(req);
+  const user = getUsuarioAutenticado(req);
   if (!user) return res.status(401).json({ message: 'Não autorizado' });
 
   if (req.method === 'GET') {
