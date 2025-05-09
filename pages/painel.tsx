@@ -8,6 +8,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const usuarioToken = getUsuarioAutenticado(ctx.req);
 
   if (!usuarioToken) {
+    console.warn('[Painel] Usuário não autenticado');
     return {
       redirect: {
         destination: '/login',
@@ -16,15 +17,17 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     };
   }
 
-  // Busca do Supabase pelo ID do usuário
+  console.log('[Painel] ID do usuário:', usuarioToken.id);
+
   const { data, error } = await supabase
-    .from('usuario')
+    .from('"Usuario"') // ✅ com aspas e maiúsculo
     .select('nome')
     .eq('id', usuarioToken.id)
     .single();
 
+  console.log('[Painel] Resultado Supabase:', { data, error });
+
   if (error || !data) {
-    console.error('Erro ao buscar nome do usuário:', error);
     return {
       props: {
         nome: 'Usuário',
