@@ -20,7 +20,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   console.log('[Painel] ID do usuário:', usuarioToken.id);
 
   const { data, error } = await supabase
-    .from('"Usuario"') // ✅ com aspas e maiúsculo
+    .from('Usuario') // ✅ nome da tabela sem aspas duplicadas
     .select('nome')
     .eq('id', usuarioToken.id)
     .single();
