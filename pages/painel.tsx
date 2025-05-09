@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { GetServerSideProps } from 'next';
-import { getUsuarioAutenticado } from '../lib/auth';// certifique-se que esse caminho esteja correto
+import { getUsuarioAutenticado } from '../lib/auth';
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const usuario = getUsuarioAutenticado(ctx.req);
@@ -17,13 +17,13 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 
   return {
     props: {
-      nome: usuario.email.split('@')[0], // pode mudar para usuario.nome se desejar
+      nome: usuario.nome.split(' ')[0], // agora pega o primeiro nome real
     },
   };
 };
 
 export default function Painel({ nome }: { nome: string }) {
-  const [leadsCaptados] = useState(3); // exemplo estático
+  const [leadsCaptados] = useState(3);
   const [progresso, setProgresso] = useState(0);
 
   useEffect(() => {
@@ -37,7 +37,6 @@ export default function Painel({ nome }: { nome: string }) {
         setProgresso(atual);
       }
     }, 20);
-
     return () => clearInterval(intervalo);
   }, [leadsCaptados]);
 
@@ -52,6 +51,11 @@ export default function Painel({ nome }: { nome: string }) {
     : progresso <= 70
     ? '#facc15'
     : '#22c55e';
+
+  function capitalizarPrimeiroNome(nomeCompleto: string) {
+    const primeiro = nomeCompleto?.split(' ')[0] || '';
+    return primeiro.charAt(0).toUpperCase() + primeiro.slice(1).toLowerCase();
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -70,7 +74,9 @@ export default function Painel({ nome }: { nome: string }) {
       </aside>
 
       <main className="flex-1 p-10">
-        <h1 className="text-4xl font-bold mb-10 text-gray-800">Olá, {nome} 👋</h1>
+        <h1 className="text-4xl font-bold mb-10 text-gray-800">
+          Olá, {capitalizarPrimeiroNome(nome)} 👋
+        </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="bg-white p-8 rounded-3xl shadow-lg flex flex-col items-center">
