@@ -17,13 +17,13 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 
   return {
     props: {
-      nome: usuario.nome.split(' ')[0], // agora pega o primeiro nome real
+      nome: usuario.nome // ✅ agora usa o nome real completo
     },
   };
 };
 
 export default function Painel({ nome }: { nome: string }) {
-  const [leadsCaptados] = useState(3);
+  const [leadsCaptados] = useState(3); // exemplo estático
   const [progresso, setProgresso] = useState(0);
 
   useEffect(() => {
@@ -37,6 +37,7 @@ export default function Painel({ nome }: { nome: string }) {
         setProgresso(atual);
       }
     }, 20);
+
     return () => clearInterval(intervalo);
   }, [leadsCaptados]);
 
@@ -52,6 +53,7 @@ export default function Painel({ nome }: { nome: string }) {
     ? '#facc15'
     : '#22c55e';
 
+  // ✅ Função para pegar apenas o primeiro nome com a primeira letra maiúscula
   function capitalizarPrimeiroNome(nomeCompleto: string) {
     const primeiro = nomeCompleto?.split(' ')[0] || '';
     return primeiro.charAt(0).toUpperCase() + primeiro.slice(1).toLowerCase();
@@ -74,9 +76,8 @@ export default function Painel({ nome }: { nome: string }) {
       </aside>
 
       <main className="flex-1 p-10">
-        <h1 className="text-4xl font-bold mb-10 text-gray-800">
-          Olá, {capitalizarPrimeiroNome(nome)} 👋
-        </h1>
+        {/* ✅ Aqui apenas aplicamos a função de capitalização */}
+        <h1 className="text-4xl font-bold mb-10 text-gray-800">Olá, {capitalizarPrimeiroNome(nome)} 👋</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="bg-white p-8 rounded-3xl shadow-lg flex flex-col items-center">
