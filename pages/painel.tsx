@@ -2,11 +2,12 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { GetServerSideProps } from 'next';
 import { getUsuarioAutenticado } from '../lib/auth';
+import { supabase } from '@/lib/supabaseClient';
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const usuario = getUsuarioAutenticado(ctx.req);
+  const usuarioToken = getUsuarioAutenticado(ctx.req);
 
-  if (!usuario) {
+  if (!usuarioToken) {
     return {
       redirect: {
         destination: '/login',
@@ -15,15 +16,31 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     };
   }
 
+  // Busca do Supabase pelo ID do usuário
+  const { data, error } = await supabase
+    .from('usuario')
+    .select('nome')
+    .eq('id', usuarioToken.id)
+    .single();
+
+  if (error || !data) {
+    console.error('Erro ao buscar nome do usuário:', error);
+    return {
+      props: {
+        nome: 'Usuário',
+      },
+    };
+  }
+
   return {
     props: {
-      nome: usuario.nome // ✅ agora usa o nome real completo
+      nome: data.nome || 'Usuário',
     },
   };
 };
 
 export default function Painel({ nome }: { nome: string }) {
-  const [leadsCaptados] = useState(3); // exemplo estático
+  const [leadsCaptados] = useState(3);
   const [progresso, setProgresso] = useState(0);
 
   useEffect(() => {
@@ -53,7 +70,6 @@ export default function Painel({ nome }: { nome: string }) {
     ? '#facc15'
     : '#22c55e';
 
-  // ✅ Função para pegar apenas o primeiro nome com a primeira letra maiúscula
   function capitalizarPrimeiroNome(nomeCompleto: string) {
     const primeiro = nomeCompleto?.split(' ')[0] || '';
     return primeiro.charAt(0).toUpperCase() + primeiro.slice(1).toLowerCase();
@@ -76,8 +92,9 @@ export default function Painel({ nome }: { nome: string }) {
       </aside>
 
       <main className="flex-1 p-10">
-        {/* ✅ Aqui apenas aplicamos a função de capitalização */}
-        <h1 className="text-4xl font-bold mb-10 text-gray-800">Olá, {capitalizarPrimeiroNome(nome)} 👋</h1>
+        <h1 className="text-4xl font-bold mb-10 text-gray-800">
+          Olá, {capitalizarPrimeiroNome(nome)} 👋
+        </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="bg-white p-8 rounded-3xl shadow-lg flex flex-col items-center">
